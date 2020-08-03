@@ -177,7 +177,7 @@
         created: function () {
             var that = this
             that.socket = io();
-            that.socket.on('chat message', function (msg) {
+            that.socket.on('chat', function (msg) {
                 that.receiveMsg(msg)
             })
             that.clipboard = new ClipboardJS('.msg-content')
@@ -193,7 +193,7 @@
         methods: {
             onSubmit: function () {
                 if (!this.isNull(this.input)) {
-                    this.socket.emit('chat message', this.input);
+                    this.socket.emit('chat', this.input);
                     this.input = ''
                 } else {
                     this.showToast('请输入要发送的信息')
@@ -220,7 +220,6 @@
                 var re = new RegExp(regu);
                 return re.test(str);
             }
-
         }
     });
 </script>

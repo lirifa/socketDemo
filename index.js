@@ -52,10 +52,33 @@ app.get('/ws/demo', function(req, res){
   res.sendFile(__dirname + '/index2.html');
 });
 
+var clientCount = 0;
+
 io.on('connection', function(socket){
-  socket.on('chat message', function(msg){
-    io.emit('chat message', msg);
+  console.log(1111111)
+  socket.on('chat', function(msg){
+    io.emit('chat', msg);
   });
+
+  socket.on('online',function(data){
+    clientCount++;
+    io.emit('clientNum',clientCount);
+    socket.username = data
+    io.emit('online',data)
+    console.log('user:'+socket.username+'connected!')
+  })
+
+  socket.on('msg',function(data){
+    io.emit('broadcastMsg',data);
+    console.log(JSON.stringify(data)+"发消息了")
+  })
+
+  socket.on('disconnect',function(){
+    clientCount--;
+    io.emit('clientNum',clientCount);
+    socket.broadcast.emit('offline',socket.username);
+    console.log(socket.username+'下线了~')
+  })
 });
 
 http.listen(port, function(){
