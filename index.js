@@ -16,7 +16,6 @@ nbs.on("connection", (ws, req) => {
   ws.on("message", message => {
     // 这里解析数据
     const result = JSON.parse(message);
-    console.log(result);
     // 是否是登陆，登陆后绑定id
     if (result.login) {
       ws.socketIdxos = result.id;
