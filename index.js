@@ -1,16 +1,18 @@
+var express = require('express');
 var app = require('express')();
 var http = require('http').Server(app);
 const bodyParser = require("body-parser");
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false}))
+app.use('/', express.static(__dirname + '/www'))
+
 var io = require('socket.io')(http);
-var WebSocketServer = require('ws').Server;
 var port = process.env.PORT || 4000;
 
+var WebSocketServer = require('ws').Server;
 const nbs = new WebSocketServer({
   port: 4001,
 })
-
 
 nbs.on("connection", (ws, req) => {
   ws.on("message", message => {
@@ -47,23 +49,18 @@ nbs.on("connection", (ws, req) => {
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
-app.get('/ws/demo', function(req, res){
-  res.sendFile(__dirname + '/index2.html');
-});
 
-var clientCount = 0;
-
+var clientCount = [];
 io.on('connection', function(socket){
-  console.log(1111111)
-  socket.on('chat', function(msg){
-    io.emit('chat', msg);
-  });
 
-  socket.on('online',function(data){
-    clientCount++;
-    io.emit('clientNum',clientCount);
+  socket.on('addUser',function(data){
+
     socket.username = data
-    io.emit('online',data)
+    socket.broadcast.emit('online',data)
+    if(!clientCount.includes(data)) {
+      clientCount.push(data)
+    }
+    io.emit('clientNum',clientCount.length);
     console.log('user:'+socket.username+'connected!')
   })
 
@@ -73,8 +70,10 @@ io.on('connection', function(socket){
   })
 
   socket.on('disconnect',function(){
-    clientCount--;
-    io.emit('clientNum',clientCount);
+    if(clientCount.includes(socket.username)) {
+      clientCount.pop(socket.username);
+    }
+    io.emit('clientNum',clientCount.length);
     socket.broadcast.emit('offline',socket.username);
     console.log(socket.username+'下线了~')
   })
